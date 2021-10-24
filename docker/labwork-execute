@@ -1,0 +1,35 @@
+#!/bin/bash -e
+#
+#
+
+LABWORK_WORKDIR="/labwork/extracted/"
+LABWORK_FILENAME="/labwork/labwork.tar.gz"
+LABWORK_TARGET="${LABWORK_WORKDIR}labwork/"
+
+if [ ! -f "$LABWORK_FILENAME" ]; then
+	echo "No labwork archive found: ${LABWORK_FILENAME}"
+	exit 1
+fi
+
+mkdir -p "$LABWORK_WORKDIR" >/dev/null 2>&1
+cd "$LABWORK_WORKDIR"
+tar xfvz "$LABWORK_FILENAME"
+
+if [ ! -d "$LABWORK_TARGET" ]; then
+	echo "Archive did not create target directory: ${LABWORK_TARGET}"
+	exit 1
+fi
+
+cd "$LABWORK_TARGET"
+if [ -x "build" ]; then
+	./build
+echo
+	echo "Skipping build step, no 'build' file or not marked executable."
+fi
+
+if [ -x "run" ]; then
+	./run "$@"
+else
+	echo "No 'run' file present or 'run' file not executable."
+	exit 1
+fi
