@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #	labwork-docker - Docker-based system for evaluation labwork
-#	Copyright (C) 2021-2021 Johannes Bauer
+#	Copyright (C) 2021-2022 Johannes Bauer
 #
 #	This file is part of labwork-docker.
 #
@@ -29,9 +29,11 @@ import collections
 from FriendlyArgumentParser import FriendlyArgumentParser
 
 parser = FriendlyArgumentParser(description = "Executor of labwork submission file.")
+parser.add_argument("-n", "--no-network-isolation", action = "store_true", help = "By default, the images that are executed inside the container are fully network-isolated (in a 'nonat' network with no DNS). This option disables this security feature. It is only intended for use with trusted submission files (i.e., for testing or for trying your own submissions)")
 parser.add_argument("-u", "--server-uri", metavar = "uri", default = "http://172.18.0.1:5000/", help = "URI of the test server endpoint. Defaults to %(default)s.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
-parser.add_argument("-a", "--assignment", metavar = "assignment_name", action = "append", default = [ ], required = True, help = "Assignment name to execute. Can be specified multiple times.")
+parser.add_argument("-c", "--client-id", metavar = "client_id", required = True, help = "Client ID to use for the labwork client. Mandatory argument.")
+parser.add_argument("-a", "--assignment", metavar = "assignment_name", required = True, help = "Assignment name to execute. Mandatory argument.")
 parser.add_argument("submission_file", metavar = "filename", nargs = "+", help = "Submission .tar.gz archive(s)")
 args = parser.parse_args(sys.argv[1:])
 
@@ -55,7 +57,10 @@ class TestcaseRunner():
 			print("Ignoring non-.tar.gz: %s" % (submission_file))
 			return
 
-		cmd = [ "docker", "create", "--network", "nonat", "--dns", "0.0.0.0", "--dns-search", "localdomain", "labwork", "/labwork/labwork-execute", self._args.server_uri ] + self._args.assignment
+		cmd = [ "docker", "create" ]
+		if not self._args.no_network_isolation:
+			cmd += [ "--network", "nonat", "--dns", "0.0.0.0", "--dns-search", "localdomain" ]
+		cmd += [ "labwork", "/labwork/labwork-execute", self._args.server_uri, self._args.client_id, self._args.assignment ]
 		container_id = subprocess.check_output(cmd).decode("ascii").rstrip("\r\n")
 
 		subprocess.check_call([ "docker", "cp", submission_file, "%s:/labwork/labwork.tar.gz" % (container_id) ], stdout = subprocess.DEVNULL)
