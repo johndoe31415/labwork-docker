@@ -3,8 +3,21 @@ This is a thin shim of code around a submission system. It starts Docker
 containers for each student's submission in an isolated container, build and
 runs them.
 
-## Installation of Docker container
-To build the Docker container:
+## Installation of the Docker container
+If you want to use the Docker container as it is built by the CI system, you can simply:
+
+```
+$ docker pull ghcr.io/johndoe31415/labwork-docker:master
+```
+
+Then you can tag it as 'labwork' so it's automatically found by the binary:
+
+```
+$ docker tag ghcr.io/johndoe31415/labwork-docker:master labwork
+```
+
+## Building the Docker container
+To build the Docker container yourself:
 
 ```
 $ docker build docker -t labwork
