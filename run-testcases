@@ -34,6 +34,7 @@ parser.add_argument("-u", "--server-uri", metavar = "uri", default = "http://172
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
 parser.add_argument("-c", "--client-id", metavar = "client_id", required = True, help = "Client ID to use for the labwork client. Mandatory argument.")
 parser.add_argument("-a", "--assignment", metavar = "assignment_name", required = True, help = "Assignment name to execute. Mandatory argument.")
+parser.add_argument("-e", "--docker-executable", metavar = "executable", default = "docker", help = "Specify an executable to run the containers. Useful if e.g. podman should be used instead of docker.")
 parser.add_argument("submission_file", metavar = "filename", nargs = "+", help = "Submission .tar.gz archive(s)")
 args = parser.parse_args(sys.argv[1:])
 
@@ -57,14 +58,14 @@ class TestcaseRunner():
 			print("Ignoring non-.tar.gz: %s" % (submission_file))
 			return
 
-		cmd = [ "docker", "create" ]
+		cmd = [ self._args.docker_executable, "create" ]
 		if not self._args.no_network_isolation:
 			cmd += [ "--network", "nonat", "--dns", "0.0.0.0", "--dns-search", "localdomain" ]
 		cmd += [ "labwork", "/labwork/labwork-execute", self._args.server_uri, self._args.client_id, self._args.assignment ]
 		container_id = subprocess.check_output(cmd).decode("ascii").rstrip("\r\n")
 
-		subprocess.check_call([ "docker", "cp", submission_file, "%s:/labwork/labwork.tar.gz" % (container_id) ], stdout = subprocess.DEVNULL)
-		subprocess.check_call([ "docker", "start", container_id ], stdout = subprocess.DEVNULL)
+		subprocess.check_call([ self._args.docker_executable, "cp", submission_file, "%s:/labwork/labwork.tar.gz" % (container_id) ], stdout = subprocess.DEVNULL)
+		subprocess.check_call([ self._args.docker_executable, "start", container_id ], stdout = subprocess.DEVNULL)
 
 		instance = self._Instance(src_file = submission_file, container_id = container_id, start_time = time.time())
 		self._running_instances.append(instance)
@@ -72,12 +73,12 @@ class TestcaseRunner():
 			print("Instance %s started: %s" % (instance.container_id, instance.src_file))
 
 	def _inspect_instance(self, container_id):
-		output = subprocess.check_output([ "docker", "inspect", container_id ])
+		output = subprocess.check_output([ self._args.docker_executable, "inspect", container_id ])
 		return json.loads(output)[0]
 
 	def _collect_instance(self, instance, exit):
-		returncode = int(subprocess.check_output([ "docker", "wait", instance.container_id ]).decode())
-		log = subprocess.check_output([ "docker", "logs", instance.container_id ], stderr = subprocess.STDOUT)
+		returncode = int(subprocess.check_output([ self._args.docker_executable, "wait", instance.container_id ]).decode())
+		log = subprocess.check_output([ self._args.docker_executable, "logs", instance.container_id ], stderr = subprocess.STDOUT)
 		finished_instance = self._FinishedInstance(instance = instance, exit = exit, returncode = returncode, log = log)
 		self._collected_results.append(finished_instance)
 
@@ -118,7 +119,7 @@ class TestcaseRunner():
 
 		# Then shut down timed out instances
 		for instance in self._timed_out_instances:
-			subprocess.check_call([ "docker", "stop", instance.container_id ])
+			subprocess.check_call([ self._args.docker_executable, "stop", instance.container_id ])
 
 		# Finally, collect results
 		for instance in self._timed_out_instances:
