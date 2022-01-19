@@ -7,7 +7,7 @@ runs them.
 To build the Docker container:
 
 ```
-$ docker build bocker -t labwork
+$ docker build docker -t labwork
 ```
 
 To verify that the build was successful:
