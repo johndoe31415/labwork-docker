@@ -36,7 +36,7 @@ parser.add_argument("-c", "--client-id", metavar = "client_id", required = True,
 parser.add_argument("-a", "--assignment", metavar = "assignment_name", required = True, help = "Assignment name to execute. Mandatory argument.")
 parser.add_argument("-e", "--docker-executable", metavar = "executable", default = "docker", help = "Specify an executable to run the containers. Useful if e.g. podman should be used instead of docker.")
 parser.add_argument("-i", "--docker-image", metavar = "docker_image", default = "ghcr.io/johndoe31415/labwork-docker:master", help = "Specify a custom container image, e.g. a locally built one.")
-parser.add_argument("-t", "--timeout-secs", metavar = "secs", default = 30.0, help = "Terminate clients after this amoung of time, in seconds. Defaults to %(default).1f seconds.")
+parser.add_argument("-t", "--timeout-secs", metavar = "secs", type = float, default = 30.0, help = "Terminate clients after this amoung of time, in seconds. Defaults to %(default).1f seconds.")
 parser.add_argument("submission_file", metavar = "filename", help = "Submission .tar.gz archive")
 args = parser.parse_args(sys.argv[1:])
 
