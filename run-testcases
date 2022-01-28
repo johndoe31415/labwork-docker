@@ -93,7 +93,7 @@ class TestcaseRunner():
 			status = info["State"]["Status"]
 			if status == "running":
 				runtime = now - instance.start_time
-				if runtime < self._args.timeout_secs:
+				if runtime < float(self._args.timeout_secs):
 					still_running.append(instance)
 					if self._args.verbose >= 2:
 						print("Instance %s still running: %s" % (instance.container_id, instance.src_file))
