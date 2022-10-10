@@ -91,5 +91,16 @@ You'll see that we executed the `labwork01` exercise using client ID
 simple `strcat` handler, other handlers are not implemented.
 
 
+## Testing with a proper CI/CD pipeline
+The ideal way to build the artifact you need to hand in as your labwork is to
+have a custom pipeline that builds it automatically for every change in the
+code. This way, you can ensure that you're meeting all format criteria (e.g.,
+permissions inside the .tar.gz archive, script layout). I can highly recommend
+you take a look at this. @arne-kapell has prepared a pipeline that
+already does this and which can be reused by everyone.
+[Take a look at the documentation here.](https://github.com/arne-kapell/kauma-pipeline)
+Note that this is not my code and I can give no warranties.
+
+
 ## License
 GNU GPL-3.
