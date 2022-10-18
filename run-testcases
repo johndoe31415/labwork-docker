@@ -26,6 +26,8 @@ import time
 import json
 import subprocess
 import collections
+import contextlib
+import tempfile
 from FriendlyArgumentParser import FriendlyArgumentParser
 
 parser = FriendlyArgumentParser(description = "Executor of labwork submission file.")
@@ -37,7 +39,7 @@ parser.add_argument("-a", "--assignment", metavar = "assignment_name", required 
 parser.add_argument("-e", "--docker-executable", metavar = "executable", default = "docker", help = "Specify an executable to run the containers. Useful if e.g. podman should be used instead of docker.")
 parser.add_argument("-i", "--docker-image", metavar = "docker_image", default = "ghcr.io/johndoe31415/labwork-docker:master", help = "Specify a custom container image, e.g. a locally built one.")
 parser.add_argument("-t", "--timeout-secs", metavar = "secs", type = float, default = 30.0, help = "Terminate clients after this amoung of time, in seconds. Defaults to %(default).1f seconds.")
-parser.add_argument("submission_file", metavar = "filename", help = "Submission .tar.gz archive")
+parser.add_argument("submission_file", nargs = "?", metavar = "filename", help = "Submission .tar.gz archive; can be omitted and is then read from stdin")
 args = parser.parse_args(sys.argv[1:])
 
 class TestcaseRunner():
@@ -51,27 +53,40 @@ class TestcaseRunner():
 		self._timed_out_instances = [ ]
 		self._collected_results = [ ]
 
+	@contextlib.contextmanager
+	def _filename_or_stdin(self, filename, suffix = ".tar.gz"):
+		if filename is not None:
+			yield fieldname
+		else:
+			with tempfile.NamedTemporaryFile(prefix = "labwork_docker_", suffix = suffix) as f:
+				content = sys.stdin.buffer.read()
+				f.write(content)
+				f.flush()
+				yield f.name
+
 	def run(self, submission_file):
-		if not os.path.isfile(submission_file):
-			print("Ignoring non-file or nonexistent: %s" % (submission_file))
-			return
-		if not submission_file.endswith(".tar.gz"):
-			print("Ignoring non-.tar.gz: %s" % (submission_file))
-			return
+		if submission_file is not None:
+			if not os.path.isfile(submission_file):
+				print("Ignoring non-file or nonexistent: %s" % (submission_file))
+				return
+			if not submission_file.endswith(".tar.gz"):
+				print("Ignoring non-.tar.gz: %s" % (submission_file))
+				return
 
-		cmd = [ self._args.docker_executable, "create" ]
-		if not self._args.no_network_isolation:
-			cmd += [ "--network", "nonat", "--dns", "0.0.0.0", "--dns-search", "localdomain" ]
-		cmd += [ self._args.docker_image, "/labwork/labwork-execute", self._args.server_uri, self._args.client_id, self._args.assignment ]
-		container_id = subprocess.check_output(cmd).decode("ascii").rstrip("\r\n")
+		with self._filename_or_stdin(submission_file) as disk_submission_file:
+			cmd = [ self._args.docker_executable, "create" ]
+			if not self._args.no_network_isolation:
+				cmd += [ "--network", "nonat", "--dns", "0.0.0.0", "--dns-search", "localdomain" ]
+			cmd += [ self._args.docker_image, "/labwork/labwork-execute", self._args.server_uri, self._args.client_id, self._args.assignment ]
+			container_id = subprocess.check_output(cmd).decode("ascii").rstrip("\r\n")
 
-		subprocess.check_call([ self._args.docker_executable, "cp", submission_file, "%s:/labwork/labwork.tar.gz" % (container_id) ], stdout = subprocess.DEVNULL)
-		subprocess.check_call([ self._args.docker_executable, "start", container_id ], stdout = subprocess.DEVNULL)
+			subprocess.check_call([ self._args.docker_executable, "cp", disk_submission_file, "%s:/labwork/labwork.tar.gz" % (container_id) ], stdout = subprocess.DEVNULL)
+			subprocess.check_call([ self._args.docker_executable, "start", container_id ], stdout = subprocess.DEVNULL)
 
-		instance = self._Instance(src_file = submission_file, container_id = container_id, start_time = time.time())
-		self._running_instances.append(instance)
-		if self._args.verbose >= 2:
-			print("Instance %s started: %s" % (instance.container_id, instance.src_file))
+			instance = self._Instance(src_file = disk_submission_file, container_id = container_id, start_time = time.time())
+			self._running_instances.append(instance)
+			if self._args.verbose >= 2:
+				print("Instance %s started: %s" % (instance.container_id, instance.src_file))
 
 	def _inspect_instance(self, container_id):
 		output = subprocess.check_output([ self._args.docker_executable, "inspect", container_id ])
