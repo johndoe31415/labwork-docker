@@ -23,7 +23,7 @@ fi
 cd "$LABWORK_TARGET"
 if [ -x "build" ]; then
 	./build
-echo
+else
 	echo "Skipping build step, no 'build' file or not marked executable."
 fi
 
