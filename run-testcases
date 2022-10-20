@@ -44,7 +44,7 @@ args = parser.parse_args(sys.argv[1:])
 
 class TestcaseRunner():
 	_Instance = collections.namedtuple("Instance", [ "src_file", "container_id", "start_time" ])
-	_FinishedInstance = collections.namedtuple("FinishedInstance", [ "instance", "exit", "returncode", "log" ])
+	_FinishedInstance = collections.namedtuple("FinishedInstance", [ "instance", "exit_reason", "returncode", "log" ])
 
 	def __init__(self, args):
 		self._args = args
@@ -92,10 +92,10 @@ class TestcaseRunner():
 		output = subprocess.check_output([ self._args.docker_executable, "inspect", container_id ])
 		return json.loads(output)[0]
 
-	def _collect_instance(self, instance, exit):
+	def _collect_instance(self, instance, exit_reason):
 		returncode = int(subprocess.check_output([ self._args.docker_executable, "wait", instance.container_id ]).decode())
 		log = subprocess.check_output([ self._args.docker_executable, "logs", instance.container_id ], stderr = subprocess.STDOUT)
-		finished_instance = self._FinishedInstance(instance = instance, exit = exit, returncode = returncode, log = log)
+		finished_instance = self._FinishedInstance(instance = instance, exit_reason = exit_reason, returncode = returncode, log = log)
 		self._collected_results.append(finished_instance)
 
 	def _wait_for_completion_iteration(self):
@@ -145,7 +145,7 @@ class TestcaseRunner():
 
 	def _present_results(self):
 		for finished_instance in self._collected_results:
-			print("%s (%s): %s returncode %d" % (finished_instance.instance.src_file, finished_instance.instance.container_id, finished_instance.exit, finished_instance.returncode))
+			print("%s (%s): %s returncode %d" % (finished_instance.instance.src_file, finished_instance.instance.container_id, finished_instance.exit_reason, finished_instance.returncode))
 			print(finished_instance.log.decode())
 			print("-" * 120)
 
@@ -153,6 +153,19 @@ class TestcaseRunner():
 		self.run(self._args.submission_file)
 		self._wait_for_completion()
 		self._present_results()
+		if len(self._collected_results) == 1:
+			# Only one testcase file passed, then return a proper exit code
+			finished_instance = self._collected_results[0]
+			if (finished_instance.exit_reason == "exit") and (finished_instance.returncode == 0):
+				sys.exit(0)
+			elif (finished_instance.exit_reason == "exit") and (finished_instance.returncode != 0):
+				sys.exit(1)
+			elif finished_instance.exit_reason == "timeout":
+				sys.exit(2)
+			else:
+				# Something not accounted for
+				sys.exit(3)
+
 
 tcr = TestcaseRunner(args)
 tcr.run_all()
