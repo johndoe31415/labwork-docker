@@ -56,7 +56,7 @@ class TestcaseRunner():
 	@contextlib.contextmanager
 	def _filename_or_stdin(self, filename, suffix = ".tar.gz"):
 		if filename is not None:
-			yield fieldname
+			yield filename
 		else:
 			with tempfile.NamedTemporaryFile(prefix = "labwork_docker_", suffix = suffix) as f:
 				content = sys.stdin.buffer.read()
