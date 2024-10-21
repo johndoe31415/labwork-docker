@@ -31,6 +31,33 @@ REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
 labwork      latest    6e10dc886c2f   2 months ago   1.22GB
 ```
 
+## Testing inside the container
+When you have built the docker container, you can start the virutal environment
+and gain a shell there:
+
+```
+$ docker run -it labwork /bin/bash
+root@5218562b4ad8:/#
+```
+
+As you can see, the current run has been given the container ID 5218562b4ad8
+for this run. This ID will vary every time you start the Docker container. You
+can now copy your solution inside the container, for example as a .tar.gz
+archive:
+
+```
+$ docker cp my_amazing_solution.tar.gz 5218562b4ad8:/
+```
+
+And then, inside the Docker environment, have this file available to be able to
+decompress it and/or run your tests with the environment (this test suite is
+all part of your implementation):
+
+```
+root@5218562b4ad8:/# ls
+bin  boot  dev  etc  home  lib  lib32  lib64  libx32  media  mnt  my_amazing_solution.tar.gz  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+```
+
 ## Testing with a proper CI/CD pipeline
 The ideal way to build the artifact you need to hand in as your labwork is to
 have a custom pipeline that builds it automatically for every change in the
