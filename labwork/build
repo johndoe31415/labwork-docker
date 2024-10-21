@@ -1,5 +1,0 @@
-#!/bin/bash
-#
-#
-
-echo "No build needed in this case (Python), this file is just an example."
