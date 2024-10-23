@@ -7,26 +7,26 @@ runs them.
 If you want to use the Docker container as it is built by the CI system, you can simply:
 
 ```
-$ docker pull ghcr.io/johndoe31415/labwork-docker:master
+docker pull ghcr.io/johndoe31415/labwork-docker:master
 ```
 
 Then you can tag it as 'labwork' so it's automatically found by the binary:
 
 ```
-$ docker tag ghcr.io/johndoe31415/labwork-docker:master labwork
+docker tag ghcr.io/johndoe31415/labwork-docker:master labwork
 ```
 
 ## Building the Docker container
 To build the Docker container yourself:
 
 ```
-$ docker build docker -t labwork
+docker build docker -t labwork
 ```
 
 To verify that the build was successful:
 
 ```
-$ docker image ls labwork
+docker image ls labwork
 REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
 labwork      latest    6e10dc886c2f   2 months ago   1.22GB
 ```
@@ -36,7 +36,7 @@ When you have built the docker container, you can start the virutal environment
 and gain a shell there:
 
 ```
-$ docker run -it labwork /bin/bash
+docker run -it labwork /bin/bash
 root@5218562b4ad8:/#
 ```
 
@@ -46,7 +46,7 @@ can now copy your solution inside the container, for example as a .tar.gz
 archive:
 
 ```
-$ docker cp my_amazing_solution.tar.gz 5218562b4ad8:/
+docker cp my_amazing_solution.tar.gz 5218562b4ad8:/
 ```
 
 And then, inside the Docker environment, have this file available to be able to
