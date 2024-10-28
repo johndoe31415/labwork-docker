@@ -19,3 +19,5 @@ RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle"
 COPY gradle /gradle
 WORKDIR /gradle
 RUN bash -c "$HOME/.sdkman/candidates/gradle/current/bin/gradle --no-daemon dependencies"
+
+WORKDIR /
