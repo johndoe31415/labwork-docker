@@ -10,14 +10,15 @@ ENV PATH $PATH:/usr/local/go/bin
 COPY rust /rust
 RUN cd /rust && cargo vendor
 
-# Install SDKMAN
-RUN curl -s "https://get.sdkman.io" | bash
-# Install Gradle
-RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle"
+# Downloading and installing gradle
+RUN curl -L https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -o /tmp/gradle-8.10.2.zip
+RUN unzip /tmp/gradle-8.10.2.zip -d /usr/local/ && mv /usr/local/gradle-8.10.2 /usr/local/gradle
+ENV PATH $PATH:/usr/local/gradle/bin
 
-# Installing gradle plugin dependecy...
+# Installing gradle plugin dependecy via workaround...
 COPY gradle /gradle
 WORKDIR /gradle
-RUN bash -c "$HOME/.sdkman/candidates/gradle/current/bin/gradle --no-daemon dependencies"
+RUN bash -c "/usr/local/gradle/bin/gradle --no-daemon dependencies"
+RUN rm -rf /gradle && rm -f /tmp/gradle-8.10.2.zip
 
 WORKDIR /
