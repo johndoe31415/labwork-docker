@@ -7,6 +7,14 @@ RUN pip3 install --break-system-packages cryptography requests
 RUN GO_VERSION=$(wget -qO- https://go.dev/VERSION?m=text | head -n 1) && wget https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz && rm -rf /usr/local/go && tar -C /usr/local -xzf ${GO_VERSION}.linux-amd64.tar.gz && rm -rf ${GO_VERSION}.linux-amd64.tar.gz
 ENV PATH $PATH:/usr/local/go/bin
 
+RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.1-linux-x86_64.tar.gz \
+   && tar xzf julia-1.11.1-linux-x86_64.tar.gz \
+   && mv julia-1.11.1 /opt/julia \
+   && ln -s /opt/julia/bin/julia /usr/local/bin/julia \
+   && rm julia-1.11.1-linux-x86_64.tar.gz
+
+RUN julia -e 'using Pkg; Pkg.add(["JSON", "Nettle", "BenchmarkTools", "Base64"])'
+
 COPY rust /rust
 RUN cd /rust && cargo vendor
 
