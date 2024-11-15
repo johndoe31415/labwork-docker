@@ -13,7 +13,7 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.1-linu
    && ln -s /opt/julia/bin/julia /usr/local/bin/julia \
    && rm julia-1.11.1-linux-x86_64.tar.gz
 
-RUN julia -e 'using Pkg; Pkg.add(["JSON", "Nettle", "BenchmarkTools", "Base64"])
+RUN julia -e 'using Pkg; Pkg.add(["JSON", "Nettle", "BenchmarkTools", "Base64"])'
 
 COPY rust /rust
 RUN cd /rust && cargo vendor
