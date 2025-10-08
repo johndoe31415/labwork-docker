@@ -17,7 +17,7 @@ RUN julia -e 'using Pkg; Pkg.add(["JSON", "Nettle", "BenchmarkTools", "Base64"])
 
 # Install rust with rustup
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH=$PATH:/root/.cargo/bin:${PATH}
+ENV PATH=$PATH:/root/.cargo/bin
 
 COPY rust /rust
 RUN cd /rust && cargo vendor
