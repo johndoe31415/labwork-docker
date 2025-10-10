@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install --yes curl wget zip git build-essential pkg-config libcjson-dev openjdk-21-jdk libbcprov-java libgoogle-gson-java libguava-java libssl-dev gcc g++ libbotan-2-dev nlohmann-json3-dev python3 python3-pip iputils-ping telnet wget && rm -fr /var/cache/apt/* /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --yes curl wget zip git build-essential pkg-config libcjson-dev openjdk-21-jdk libbcprov-java libgoogle-gson-java libguava-java libssl-dev gcc g++ libbotan-2-dev nlohmann-json3-dev python3 python3-pip iputils-ping telnet wget rustup && rm -fr /var/cache/apt/* /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages cryptography requests pyasn1
 
 RUN GO_VERSION=$(wget -qO- https://go.dev/VERSION?m=text | head -n 1) && wget https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz && rm -rf /usr/local/go && tar -C /usr/local -xzf ${GO_VERSION}.linux-amd64.tar.gz && rm -rf ${GO_VERSION}.linux-amd64.tar.gz
@@ -15,9 +15,8 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.1-linu
 
 RUN julia -e 'using Pkg; Pkg.add(["JSON", "Nettle", "BenchmarkTools", "Base64"])'
 
-# Install rust with rustup
-RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH=$PATH:/root/.cargo/bin
+# setup rust environment with rustup
+RUN rustup default stable
 
 COPY rust /rust
 RUN cd /rust && cargo vendor
