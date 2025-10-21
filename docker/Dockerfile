@@ -18,8 +18,8 @@ RUN julia -e 'using Pkg; Pkg.add(["JSON", "Nettle", "BenchmarkTools", "Base64"])
 # setup rust environment with rustup
 RUN rustup default stable
 
-COPY rust /rust
-RUN cd /rust && cargo vendor
+COPY rust /usr/local/rust
+RUN cd /usr/local/rust && cargo vendor
 
 # Downloading and installing gradle
 RUN curl -L https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -o /tmp/gradle-8.10.2.zip
