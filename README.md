@@ -63,7 +63,40 @@ The ideal way to build the artifact you need to hand in as your labwork is to
 have a custom pipeline that builds it automatically for every change in the
 code. This way, you can ensure that you're meeting all formal criteria (e.g.,
 permissions inside your submission directory). I can highly recommend you take
-a look at this. 
+a look at this.
+
+## Locking your dependencies for Rust
+A `Cargo.lock` file is provided in the [vendor sources](docker/rust/Cargo.lock)
+folder for Rust. Please use this for your personal project to pin your
+dependencies.
+
+> [!NOTE]
+> This lockfile needs to be updated at the start of each semester.
+
+How to use this for developing locally:
+
+```sh
+$ git clone git@github.com:johndoe31415/labwork-docker
+$ cd labwork-docker/docker/rust
+```
+
+Generate the default config for vendored dependencies:
+
+```sh
+$ cargo vendor > config.toml
+```
+
+Finally, replaces "vendor" in `config.toml` with the realpath of the generated
+vendor directory:
+
+```sh
+$ echo -n "Changing directory to: "
+$ realpath vendor
+$ sed -ie "s|\"vendor\"|\"$(realpath vendor)\"|" config.toml
+```
+
+Now, move the `config.toml` to your project (should be in
+`.cargo/config.toml`).
 
 ## License
 GNU GPL-3.
