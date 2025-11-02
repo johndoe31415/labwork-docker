@@ -5,7 +5,10 @@
 REV=$(git describe --always --long --dirty --broken --tags)
 SRC=$(git config --get remote.origin.url)
 NOW_UTC=$(/bin/date -u '+%Y-%m-%dT%H:%M:%SZ')
-docker build docker \
+if [ "$1" == "-n" ]; then
+	ARGS="--no-cache"
+fi
+docker build ${ARGS} docker \
 	--label "org.opencontainers.image.revision=${REV}" \
 	--label "org.opencontainers.image.source=${SRC}" \
 	--label "org.opencontainers.image.created=${NOW_UTC}" \

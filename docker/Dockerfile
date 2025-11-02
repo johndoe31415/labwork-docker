@@ -1,6 +1,8 @@
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+RUN useradd -m -s /bin/bash kartfire
+
 RUN apt-get update && apt-get install --yes curl wget zip git build-essential pkg-config libcjson-dev openjdk-21-jdk libbcprov-java libgoogle-gson-java libguava-java libssl-dev gcc g++ libbotan-2-dev nlohmann-json3-dev libgmp-dev python3 python3-pip iputils-ping telnet wget rustup && rm -fr /var/cache/apt/* /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages cryptography requests pyasn1
 
@@ -8,10 +10,11 @@ RUN GO_VERSION=$(wget -qO- https://go.dev/VERSION?m=text | head -n 1) && wget ht
 ENV PATH=$PATH:/usr/local/go/bin
 
 # setup rust environment with rustup
-RUN rustup default stable
+RUN su kartfire -c "rustup default stable"
 
 COPY rust /usr/local/rust
-RUN cd /usr/local/rust && cargo vendor
+RUN chown -R kartfire:kartfire /usr/local/rust
+RUN su kartfire -s /bin/bash -c "cd /usr/local/rust && cargo vendor"
 
 # Downloading and installing gradle
 RUN curl -L https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -o /tmp/gradle-8.10.2.zip
